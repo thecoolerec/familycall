@@ -1,0 +1,80 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+          cache-dependency-path: server/go.sum
+
+      - name: Run Unit Tests
+        run: go test -v -race ./...
+
+  build:
+    name: Build Binaries
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            output_name: familycall-server-linux-amd64
+          - goos: linux
+            goarch: arm64
+            output_name: familycall-server-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            output_name: familycall-server-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            output_name: familycall-server-darwin-arm64
+          - goos: windows
+            goarch: amd64
+            output_name: familycall-server-windows-amd64.exe
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+          cache-dependency-path: server/go.sum
+
+      - name: Build Binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          mkdir -p builds
+          go build -ldflags="-s -w" -o builds/${{ matrix.output_name }} .
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.output_name }}
+          path: server/builds/${{ matrix.output_name }}

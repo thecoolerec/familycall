@@ -244,6 +244,7 @@ server {
 - `DOMAIN`: Your domain name (e.g., `family.example.com`) - not used in backend-only mode
 - `HTTP_PORT`: HTTP port for Let's Encrypt challenges (default: `80`) - not used in backend-only mode
 - `HTTPS_PORT`: HTTPS port (default: `443`) - not used in backend-only mode
+- `PUBLIC_IP`: Public IP address for TURN relay (prioritized over automatic `api.ipify.org` detection; useful when behind HTTP/SOCKS proxy)
 - `TURN_PORT`: TURN server UDP port (default: `3478`)
 - `TURN_REALM`: TURN server realm (default: `familycall`)
 - `DATABASE_PATH`: Path to SQLite database file (default: `familycall.db`)

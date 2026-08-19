@@ -143,8 +143,18 @@ func generatePassword() string {
 	return fmt.Sprintf("%x", b)
 }
 
-// getPublicIP gets the public IP address from ipify.org
+// getPublicIP gets the public IP address.
+// If the PUBLIC_IP environment variable is set and valid, it is prioritized.
+// Otherwise, it falls back to auto-detecting the public IP via ipify.org.
 func getPublicIP() net.IP {
+	if envIP := strings.TrimSpace(os.Getenv("PUBLIC_IP")); envIP != "" {
+		if ip := net.ParseIP(envIP); ip != nil {
+			log.Printf("Using public IP from PUBLIC_IP environment variable: %s", ip.String())
+			return ip
+		}
+		log.Printf("Invalid IP address in PUBLIC_IP environment variable: %s, falling back to auto-detection", envIP)
+	}
+
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
